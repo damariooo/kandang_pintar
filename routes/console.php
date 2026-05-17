@@ -10,3 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('schedule:device')
     ->everyMinute();
+Schedule::command('devices:check-status')
+    ->everyMinute();

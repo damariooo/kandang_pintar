@@ -74,9 +74,11 @@
                                         <p class="text-sm font-bold text-slate-800">
                                             {{ $device->device_name ?? 'Unnamed Device' }}
                                         </p>
+
                                         <div class="flex items-center gap-2 mt-1">
                                             @php
                                                 $signal = $device->signal_strength ?? 0;
+
                                                 $signalColor =
                                                     $device->connection_status == 'offline'
                                                         ? 'text-slate-300'
@@ -86,10 +88,17 @@
                                                                 ? 'text-amber-500'
                                                                 : 'text-rose-500'));
                                             @endphp
+
                                             <i class="fas fa-wifi text-[10px] {{ $signalColor }}"></i>
+
                                             <span class="text-[10px] text-slate-400 font-bold uppercase">
                                                 {{ $signal }}% Sinyal
                                             </span>
+                                        </div>
+
+                                        <div class="text-[10px] text-slate-400 mt-1">
+                                            Last Update:
+                                            {{ $device->last_updated ? \Carbon\Carbon::parse($device->last_updated)->diffForHumans() : 'Belum ada data' }}
                                         </div>
                                     </div>
                                 </div>

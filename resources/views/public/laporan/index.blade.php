@@ -38,48 +38,26 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
-            <div class="relative z-10">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Okupansi Kandang</p>
-                <h3 class="text-3xl font-black text-slate-800">{{ $current_chicken }} <span
-                        class="text-sm font-medium text-slate-400">/ {{ $capacity }}</span></h3>
-                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-4">
-                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-700"
-                        style="width: {{ $capacity > 0 ? ($current_chicken / $capacity) * 100 : 0 }}%"></div>
-                </div>
-            </div>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
 
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Suhu Terakhir</p>
-            <h3 class="text-3xl font-black text-[#002855]">{{ $last_temp }}°C</h3>
-            <p class="text-[10px] text-emerald-500 font-bold mt-2 uppercase tracking-widest"><i
-                    class="fas fa-check-circle mr-1"></i> Stabil</p>
-        </div>
+        <x-kpi-card title="Okupansi Kandang" value="{{ $current_chicken }}" subtitle="/ {{ $capacity }}"
+            icon="fa-warehouse" color="emerald" />
 
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Status Pintu</p>
-            <div class="mt-2">
-                <span
-                    class="px-4 py-2 text-[10px] font-black rounded-xl border uppercase {{ $door_status == 'TERBUKA' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100' }}">
-                    {{ $door_status }}
-                </span>
-            </div>
-        </div>
+        <x-kpi-card title="Suhu Terakhir" value="{{ $last_temp }}°C" subtitle="Rata-rata {{ $avg_temp }}°C"
+            icon="fa-temperature-high" color="orange" />
 
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Koneksi Alat</p>
-            <div class="flex items-center gap-3 mt-2">
-                <div class="relative flex">
-                    <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $online > 0 ? 'bg-emerald-400' : 'bg-rose-400' }} opacity-75"></span>
-                    <span
-                        class="relative inline-flex rounded-full h-3 w-3 {{ $online > 0 ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
-                </div>
-                <span class="text-sm font-bold text-slate-700">{{ $online > 0 ? 'Online' : 'Offline' }}</span>
-            </div>
-        </div>
+        <x-kpi-card title="Total Deteksi AI" value="{{ $total_detection }}" subtitle="YOLO Monitoring" icon="fa-robot"
+            color="indigo" />
+
+        <x-kpi-card title="Ayam Masuk" value="{{ $total_masuk }}" subtitle="Movement IN" icon="fa-arrow-right-to-bracket"
+            color="emerald" />
+
+        <x-kpi-card title="Ayam Keluar" value="{{ $total_keluar }}" subtitle="Movement OUT"
+            icon="fa-arrow-right-from-bracket" color="orange" />
+
+        <x-kpi-card title="Device Aktif" value="{{ $online_devices }}" subtitle="IoT Connected" icon="fa-microchip"
+            color="blue" />
+
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -96,6 +74,14 @@
                     <i class="fas fa-temperature-high mr-3 text-orange-500"></i> Rata-Rata Suhu
                 </h4>
                 <canvas id="tempChart" height="250"></canvas>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-8 flex items-center">
+                    <i class="fas fa-robot mr-3 text-indigo-500"></i>
+                    Aktivitas Deteksi AI
+                </h4>
+
+                <canvas id="detectionChart" height="250"></canvas>
             </div>
         </div>
 
@@ -183,6 +169,27 @@
                     borderWidth: 4,
                     tension: 0.4
                 }]
+            }
+        });
+
+        new Chart(document.getElementById('detectionChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Deteksi AI',
+                    data: {!! json_encode($detection_data) !!},
+                    backgroundColor: '#6366f1',
+                    borderRadius: 12
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
             }
         });
 

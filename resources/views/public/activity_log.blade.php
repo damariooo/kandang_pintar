@@ -115,19 +115,9 @@
                                 </td>
 
                                 <td class="px-6 py-5">
-                                    <div class="flex items-center gap-2">
-                                        @if ($log->action == 'IN' || $log->action == 'OPEN_DOOR')
-                                            <i class="fas fa-sign-in-alt text-blue-500"></i>
-                                        @elseif($log->action == 'OUT' || $log->action == 'CLOSE_DOOR')
-                                            <i class="fas fa-sign-out-alt text-orange-500"></i>
-                                        @elseif($log->category == 'detection')
-                                            <i class="fas fa-search text-emerald-500"></i>
-                                        @else
-                                            <i class="fas fa-cog text-slate-400"></i>
-                                        @endif
-                                        <span
-                                            class="text-sm font-bold text-slate-800 uppercase tracking-tight">{{ $log->action }}</span>
-                                    </div>
+                                    <span class="text-sm font-bold text-slate-800 uppercase tracking-tight">
+                                        {{ $log->action }}
+                                    </span>
                                 </td>
 
                                 <td class="px-6 py-5">

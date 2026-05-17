@@ -62,7 +62,7 @@
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pintu Terbuka</p>
                 <h2 class="text-2xl font-black {{ $anyDoorOpen ? 'text-orange-500' : 'text-slate-800' }} tracking-tight">
                     {{ $openDoorsCount }}<span
-                        class="text-sm text-slate-300 font-bold ml-1">/{{ $totalDevicesCount }}</span>
+                        class="text-sm text-slate-300 font-bold ml-1">/{{ $totalServoCount }}</span>
                 </h2>
             </div>
         </div>

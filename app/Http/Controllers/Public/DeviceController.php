@@ -12,13 +12,19 @@ class DeviceController extends Controller
 {
     public function index()
     {
-        $devices = Device::with('kandang')->latest()->get();
+        $devices = Device::with('kandang')
+            ->whereHas('kandang', function ($q) {
+                $q->where('user_id', auth()->id());
+            })
+            ->latest()
+            ->get();
+
         return view('Public.device.index', compact('devices'));
     }
 
     public function create()
     {
-        $kandangs = Kandang::all();
+        $kandangs = Kandang::where('user_id', auth()->id())->get();
         return view('Public.device.create', compact('kandangs'));
     }
 
@@ -31,33 +37,48 @@ class DeviceController extends Controller
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
+        Kandang::where('user_id', auth()->id())
+            ->findOrFail($request->kandang_id);
+
         $data = $request->except('profile_image');
-        $data['status'] = $request->status ?? 'aktif'; 
-        $data['connection_status'] = 'online'; 
-        $data['signal_strength'] = rand(70, 100);
-        $data['last_updated'] = now();
+
+        $data['status'] = $request->status ?? 'aktif';
+        $data['connection_status'] = 'offline';
+        $data['signal_strength'] = 0;
+        $data['health_status'] = 'MAINTENANCE';
+        $data['last_updated'] = null;
 
         if ($request->hasFile('profile_image')) {
-            $data['profile_image'] = $request->file('profile_image')->store('devices', 'public');
+            $data['profile_image'] =
+                $request->file('profile_image')
+                ->store('devices', 'public');
         }
 
         Device::create($data);
 
-        return redirect()->route('devices.index')
+        return redirect()
+            ->route('devices.index')
             ->with('success', 'Perangkat berhasil ditambahkan!');
     }
 
     public function edit($id)
     {
-        $device = Device::findOrFail($id);
-        $kandangs = Kandang::all();
+        $device = Device::whereHas('kandang', function ($q) {
+            $q->where('user_id', auth()->id());
+        })
+            ->findOrFail($id);
+
+        $kandangs = Kandang::where('user_id', auth()->id())->get();
 
         return view('Public.device.edit', compact('device', 'kandangs'));
     }
 
     public function update(Request $request, $id)
     {
-        $device = Device::findOrFail($id);
+        $device = Device::whereHas('kandang', function ($q) {
+            $q->where('user_id', auth()->id());
+        })
+            ->findOrFail($id);
 
         $request->validate([
             'device_name'       => 'required|string|max:255',
@@ -66,12 +87,15 @@ class DeviceController extends Controller
             'installation_date' => 'nullable|date',
         ]);
 
+        Kandang::where('user_id', auth()->id())
+            ->findOrFail($request->kandang_id);
+
         $data = $request->except(['profile_image', 'remove_image']);
 
         if ($request->remove_image == "1") {
             if ($device->profile_image) {
                 Storage::disk('public')->delete($device->profile_image);
-                $device->profile_image = null; 
+                $device->profile_image = null;
             }
         }
 
@@ -92,7 +116,10 @@ class DeviceController extends Controller
 
     public function destroy($id)
     {
-        $device = Device::findOrFail($id);
+        $device = Device::whereHas('kandang', function ($q) {
+            $q->where('user_id', auth()->id());
+        })
+            ->findOrFail($id);
 
         if ($device->profile_image) {
             Storage::disk('public')->delete($device->profile_image);

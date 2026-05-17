@@ -7,6 +7,7 @@ use PhpMqtt\Client\MqttClient;
 use App\Models\Suhu;
 use App\Models\Kandang;
 use App\Models\Ayam;
+use App\Models\Device;
 
 class MqttListen extends Command
 {
@@ -112,6 +113,33 @@ class MqttListen extends Command
             }
         }, 0);
 
+        $mqtt->subscribe('kandang/device/status', function ($topic, $message) {
+
+            echo "\n=== DEVICE STATUS ===\n";
+            echo $message . "\n";
+
+            $data = json_decode($message, true);
+
+            try {
+
+                $device = Device::where('device_id', $data['device_id'])->first();
+
+                if ($device) {
+                    $device->update([
+                        'connection_status' => $data['connection_status'],
+                        'signal_strength' => $data['signal_strength'],
+                        'health_status' => $data['health_status'],
+                        'last_updated' => now(),
+                    ]);
+
+                    echo "DEVICE UPDATED\n";
+                }
+            } catch (\Exception $e) {
+
+                echo "ERROR DEVICE STATUS:\n";
+                echo $e->getMessage() . "\n";
+            }
+        }, 0);
         $mqtt->loop(true);
     }
 }
