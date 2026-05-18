@@ -75,48 +75,92 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/servo/open', function (Request $request) {
 
-        MqttService::publish('kandang/servo', 'OPEN');
+        $device = Device::with('kandang')
+            ->where('device_id', $request->device_id)
+            ->first();
 
-        Device::where('device_id', $request->device_id)
-            ->update([
-                'door_status' => 'TERBUKA'
-            ]);
+        if (!$device) {
+            return back()->with('error', 'Device tidak ditemukan');
+        }
+
+        $topic = 'kandang/' .
+            $device->kandang->code .
+            '/servo';
+
+        MqttService::publish($topic, 'OPEN');
+
+        $device->update([
+            'door_status' => 'TERBUKA'
+        ]);
 
         return back()->with('success', 'Pintu dibuka');
     })->name('servo.open');
 
     Route::post('/servo/close', function (Request $request) {
 
-        MqttService::publish('kandang/servo', 'CLOSE');
+        $device = Device::with('kandang')
+            ->where('device_id', $request->device_id)
+            ->first();
 
-        Device::where('device_id', $request->device_id)
-            ->update([
-                'door_status' => 'TERTUTUP'
-            ]);
+        if (!$device) {
+            return back()->with('error', 'Device tidak ditemukan');
+        }
+
+        $topic = 'kandang/' .
+            $device->kandang->code .
+            '/servo';
+
+        MqttService::publish($topic, 'CLOSE');
+
+        $device->update([
+            'door_status' => 'TERTUTUP'
+        ]);
 
         return back()->with('success', 'Pintu ditutup');
     })->name('servo.close');
 
     Route::post('/lamp/on', function (Request $request) {
 
-        MqttService::publish('kandang/lamp', 'ON');
+        $device = Device::with('kandang')
+            ->where('device_id', $request->device_id)
+            ->first();
 
-        Device::where('device_id', $request->device_id)
-            ->update([
-                'light_status' => 'HIDUP'
-            ]);
+        if (!$device) {
+            return back()->with('error', 'Device tidak ditemukan');
+        }
+
+        $topic = 'kandang/' .
+            $device->kandang->code .
+            '/led';
+
+        MqttService::publish($topic, 'ON');
+
+        $device->update([
+            'light_status' => 'HIDUP'
+        ]);
 
         return back()->with('success', 'Lampu dinyalakan');
     })->name('lamp.on');
 
     Route::post('/lamp/off', function (Request $request) {
 
-        MqttService::publish('kandang/lamp', 'OFF');
+        $device = Device::with('kandang')
+            ->where('device_id', $request->device_id)
+            ->first();
 
-        Device::where('device_id', $request->device_id)
-            ->update([
-                'light_status' => 'MATI'
-            ]);
+        if (!$device) {
+            return back()->with('error', 'Device tidak ditemukan');
+        }
+
+        $topic = 'kandang/' .
+            $device->kandang->code .
+            '/led';
+
+        MqttService::publish($topic, 'OFF');
+
+        $device->update([
+            'light_status' => 'MATI'
+        ]);
 
         return back()->with('success', 'Lampu dimatikan');
     })->name('lamp.off');

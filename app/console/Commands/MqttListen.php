@@ -12,134 +12,143 @@ use App\Models\Device;
 class MqttListen extends Command
 {
     protected $signature = 'mqtt:listen';
-
     protected $description = 'Listen MQTT';
 
     public function handle()
     {
-        $mqtt = new MqttClient(
-            '127.0.0.1',
-            1883,
-            'laravel_subscriber'
-        );
-
+        $mqtt = new MqttClient('127.0.0.1', 1883, 'laravel_subscriber');
         $mqtt->connect();
 
         echo "MQTT CONNECTED\n";
 
         $mqtt->subscribe('kandang/sensor', function ($topic, $message) {
 
-            echo "\n=== DATA SUHU ===\n";
-            echo $message . "\n";
-
             $data = json_decode($message, true);
+            if (!$data) return;
 
-            try {
+            echo "RAW SENSOR: " . $message . "\n";
 
+            $device = Device::where('device_id', $data['device_id'] ?? null)->first();
+            if (!$device) return;
+
+            // update status device (ESP32 / sensor apapun)
+            $device->update([
+                'connection_status' => 'online',
+                'device_state' => $data['device_state'] ?? 'active',
+                'health_status' => $data['health_status'] ?? 'EXCELLENT',
+                'signal_strength' => $data['signal_strength'] ?? null,
+                'last_updated' => now(),
+            ]);
+
+            echo "DEVICE UPDATED: " . $device->device_id . "\n";
+
+            if ($device->status !== 'aktif') {
+                echo "DEVICE NON-AKTIF -> SENSOR IGNORED\n";
+                return;
+            }
+
+            if (isset($data['temperature'])) {
                 Suhu::create([
                     'kandang_id' => $data['kandang_id'],
-                    'device_id' => $data['device_id'],
+                    'device_id' => $device->id,
                     'temperature' => $data['temperature']
                 ]);
 
-                echo "BERHASIL INSERT SUHU\n";
-            } catch (\Exception $e) {
-
-                echo "ERROR SUHU:\n";
-                echo $e->getMessage() . "\n";
+                echo "SUHU SAVED\n";
             }
         }, 0);
 
         $mqtt->subscribe('kandang/ayam', function ($topic, $message) {
 
-            echo "\n=== DATA AYAM ===\n";
-            echo $message . "\n";
-
             $data = json_decode($message, true);
+            if (!$data) return;
 
-            try {
+            $device = Device::where('device_id', $data['device_id'] ?? null)->first();
+            if (!$device) return;
 
-                Ayam::create([
-                    'kandang_id' => $data['kandang_id'],
-                    'device_id' => $data['device_id'],
-                    'direction' => $data['direction'],
-                    'source' => $data['source']
-                ]);
-
-                $kandang = Kandang::find($data['kandang_id']);
-
-                if ($kandang) {
-
-                    echo "KANDANG DITEMUKAN\n";
-
-                    echo "CURRENT CHICKEN SEBELUM: ";
-                    echo $kandang->current_chicken . "\n";
-
-                    echo "DIRECTION:";
-                    var_dump($data['direction']);
-
-                    if (trim($data['direction']) === 'IN') {
-
-                        $kandang->current_chicken =
-                            ($kandang->current_chicken ?? 0) + 1;
-
-                        $kandang->save();
-
-                        echo "AYAM BERTAMBAH\n";
-                    } elseif (trim($data['direction']) === 'OUT') {
-
-                        if (($kandang->current_chicken ?? 0) > 0) {
-
-                            $kandang->current_chicken =
-                                $kandang->current_chicken - 1;
-
-                            $kandang->save();
-
-                            echo "AYAM BERKURANG\n";
-                        }
-                    }
-                    echo "CURRENT CHICKEN SESUDAH: ";
-                    echo $kandang->fresh()->current_chicken . "\n";
-                } else {
-
-                    echo "KANDANG TIDAK DITEMUKAN\n";
-                }
-
-                echo "BERHASIL INSERT AYAM\n";
-            } catch (\Exception $e) {
-
-                echo "ERROR AYAM:\n";
-                echo $e->getMessage() . "\n";
+            if ($device->status !== 'aktif') {
+                echo "DEVICE NON-AKTIF -> AYAM IGNORED\n";
+                return;
             }
+
+            $device->update([
+                'last_updated' => now(),
+                'connection_status' => 'online',
+            ]);
+
+            Ayam::create([
+                'kandang_id' => $data['kandang_id'],
+                'device_id' => $device->id,
+                'direction' => $data['direction'],
+                'source' => $data['source']
+            ]);
+
+            $kandang = Kandang::find($data['kandang_id']);
+
+            if ($kandang) {
+                if (trim($data['direction']) === 'IN') {
+                    $kandang->current_chicken++;
+                } elseif ($kandang->current_chicken > 0) {
+                    $kandang->current_chicken--;
+                }
+                $kandang->save();
+            }
+
+            echo "AYAM SAVED\n";
         }, 0);
 
         $mqtt->subscribe('kandang/device/status', function ($topic, $message) {
 
-            echo "\n=== DEVICE STATUS ===\n";
-            echo $message . "\n";
+            $data = json_decode($message, true);
+            if (!$data) return;
+
+            $device = Device::where('device_id', $data['device_id'] ?? null)->first();
+            if (!$device) return;
+
+            if ($device->status !== 'aktif') {
+                echo "DEVICE NON-AKTIF -> HEARTBEAT IGNORED\n";
+                return;
+            }
+
+            $device->update([
+                'connection_status' => 'online',
+                'signal_strength' => $data['signal_strength'] ?? null,
+                'health_status' => $data['health_status'] ?? 'EXCELLENT',
+                'device_state' => 'active',
+                'last_updated' => now(),
+            ]);
+
+            echo "HEARTBEAT UPDATED\n";
+        }, 0);
+
+        $mqtt->subscribe('kandang/door/status', function ($topic, $message) {
 
             $data = json_decode($message, true);
+            if (!$data) return;
 
-            try {
+            Device::where('device_id', $data['device_id'] ?? null)
+                ->update([
+                    'door_status' => $data['door_status'] ?? null,
+                    'last_updated' => now(),
+                ]);
 
-                $device = Device::where('device_id', $data['device_id'])->first();
-
-                if ($device) {
-                    $device->update([
-                        'connection_status' => $data['connection_status'],
-                        'signal_strength' => $data['signal_strength'],
-                        'health_status' => $data['health_status'],
-                        'last_updated' => now(),
-                    ]);
-
-                    echo "DEVICE UPDATED\n";
-                }
-            } catch (\Exception $e) {
-
-                echo "ERROR DEVICE STATUS:\n";
-                echo $e->getMessage() . "\n";
-            }
+            echo "DOOR UPDATED\n";
         }, 0);
+    
+        $mqtt->subscribe('kandang/light/status', function ($topic, $message) {
+
+            $data = json_decode($message, true);
+            if (!$data) return;
+
+            Device::where('device_id', $data['device_id'] ?? null)
+                ->update([
+                    'light_status' => $data['light_status'] ?? null,
+                    'last_updated' => now(),
+                ]);
+
+            echo "LIGHT UPDATED\n";
+        }, 0);
+
         $mqtt->loop(true);
     }
 }

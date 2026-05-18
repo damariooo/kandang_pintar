@@ -11,7 +11,6 @@ class KandangSeeder extends Seeder
 {
     public function run(): void
     {
-        // pastikan user ada
         $user1 = User::first();
         $user2 = User::skip(1)->first();
 
@@ -29,47 +28,66 @@ class KandangSeeder extends Seeder
             'timer_close' => '18:00:00',
         ]);
 
-        Device::insert([
+        $devices1 = [
             [
-                'kandang_id' => $kandang1->id,
-                'device_id' => 'DHT22_1',
+                'device_id' => 'KDG001-ESP32',
+                'device_name' => 'ESP32 Controller K1',
+                'device_type' => 'gateway',
+                'component_type' => 'esp32',
+            ],
+            [
+                'device_id' => 'KDG001-DHT22',
                 'device_name' => 'Sensor Suhu K1',
-                'status' => 'aktif',
-                'connection_status' => 'online',
-                'health_status' => 'EXCELLENT',
-                'signal_strength' => 90,
-                'door_status' => null,
-                'light_status' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'device_type' => 'sensor',
+                'component_type' => 'dht22',
             ],
             [
-                'kandang_id' => $kandang1->id,
-                'device_id' => 'SERVO_1',
-                'device_name' => 'Pintu K1',
-                'status' => 'aktif',
-                'connection_status' => 'online',
-                'health_status' => 'EXCELLENT',
-                'signal_strength' => 80,
+                'device_id' => 'KDG001-SERVO',
+                'device_name' => 'Servo Pintu K1',
+                'device_type' => 'actuator',
+                'component_type' => 'servo',
                 'door_status' => 'TERTUTUP',
-                'light_status' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
             [
-                'kandang_id' => $kandang1->id,
-                'device_id' => 'LAMP_1',
-                'device_name' => 'Lampu Pemanas K1',
-                'status' => 'aktif',
-                'connection_status' => 'offline',
-                'health_status' => 'DEGRADED',
-                'signal_strength' => 40,
-                'door_status' => null,
+                'device_id' => 'KDG001-LED',
+                'device_name' => 'Lampu K1',
+                'device_type' => 'actuator',
+                'component_type' => 'led',
                 'light_status' => 'MATI',
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
-        ]);
+            [
+                'device_id' => 'KDG001-ULTRASONIC1',
+                'device_name' => 'Ultrasonic 1 K1',
+                'device_type' => 'sensor',
+                'component_type' => 'ultrasonic',
+            ],
+            [
+                'device_id' => 'KDG001-ULTRASONIC2',
+                'device_name' => 'Ultrasonic 2 K1',
+                'device_type' => 'sensor',
+                'component_type' => 'ultrasonic',
+            ],
+        ];
+
+        foreach ($devices1 as $device) {
+            Device::create([
+                'kandang_id' => $kandang1->id,
+                'device_id' => $device['device_id'],
+                'device_name' => $device['device_name'],
+                'device_type' => $device['device_type'],
+                'component_type' => $device['component_type'],
+                'profile_image' => null,
+                'status' => 'non-aktif',
+                'connection_status' => 'offline',
+                'device_state' => 'maintenance',
+                'door_status' => $device['door_status'] ?? null,
+                'light_status' => $device['light_status'] ?? null,
+                'health_status' => 'MAINTENANCE',
+                'signal_strength' => null,
+                'installation_date' => now(),
+                'last_updated' => now(),
+            ]);
+        }
 
         $kandang2 = Kandang::create([
             'user_id' => $user2 ? $user2->id : $user1->id,
@@ -80,46 +98,24 @@ class KandangSeeder extends Seeder
             'timer_close' => '18:00:00',
         ]);
 
-        Device::insert([
-            [
-                'kandang_id' => $kandang1->id,
-                'device_id' => 'DHT22_2',
-                'device_name' => 'Sensor Suhu K2',
-                'status' => 'aktif',
-                'connection_status' => 'online',
-                'health_status' => 'EXCELLENT',
-                'signal_strength' => 90,
-                'door_status' => null,
-                'light_status' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'kandang_id' => $kandang1->id,
-                'device_id' => 'SERVO_2',
-                'device_name' => 'Pintu K2',
-                'status' => 'aktif',
-                'connection_status' => 'online',
-                'health_status' => 'EXCELLENT',
-                'signal_strength' => 80,
-                'door_status' => 'TERTUTUP',
-                'light_status' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'kandang_id' => $kandang1->id,
-                'device_id' => 'LAMP_2',
-                'device_name' => 'Lampu Pemanas K2',
-                'status' => 'aktif',
+        foreach ($devices1 as $device) {
+            Device::create([
+                'kandang_id' => $kandang2->id,
+                'device_id' => str_replace('KDG001', 'KDG002', $device['device_id']),
+                'device_name' => str_replace('K1', 'K2', $device['device_name']),
+                'device_type' => $device['device_type'],
+                'component_type' => $device['component_type'],
+                'profile_image' => null,
+                'status' => 'non-aktif',
                 'connection_status' => 'offline',
-                'health_status' => 'DEGRADED',
-                'signal_strength' => 40,
-                'door_status' => null,
-                'light_status' => 'MATI',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+                'device_state' => 'maintenance',
+                'door_status' => $device['door_status'] ?? null,
+                'light_status' => $device['light_status'] ?? null,
+                'health_status' => 'MAINTENANCE',
+                'signal_strength' => null,
+                'installation_date' => now(),
+                'last_updated' => now(),
+            ]);
+        }
     }
 }

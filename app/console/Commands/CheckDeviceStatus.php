@@ -9,7 +9,6 @@ use Carbon\Carbon;
 class CheckDeviceStatus extends Command
 {
     protected $signature = 'devices:check-status';
-
     protected $description = 'Check device online/offline';
 
     public function handle()
@@ -27,13 +26,24 @@ class CheckDeviceStatus extends Command
 
             if ($minutes >= 2) {
 
-                $device->update([
-                    'connection_status' => 'offline',
-                    'health_status' => 'CRITICAL'
-                ]);
+                if ($device->connection_status !== 'offline') {
+
+                    $device->update([
+                        'connection_status' => 'offline',
+                        'device_state' => 'inactive',
+                        'health_status' => 'CRITICAL',
+                        'signal_strength' => $data['signal_strength'] ?? null,
+                        'last_updated' => now(),
+                    ]);
+
+                    $this->info("{$device->device_id} -> OFFLINE ({$minutes} min)");
+                }
+            } else {
+
+                $this->info("{$device->device_id} -> STILL ACTIVE");
             }
         }
 
-        $this->info('Device status checked');
+        $this->info('Device check completed');
     }
 }

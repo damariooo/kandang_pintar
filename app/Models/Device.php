@@ -11,16 +11,24 @@ class Device extends Model
         'device_id',
         'device_name',
         'device_type',
+        'component_type',
         'profile_image',
         'status',
+        'connection_status',
+        'device_state',
         'door_status',
         'light_status',
+        'health_status',
+        'signal_strength',
         'installation_date',
-        'last_updated'
+        'last_updated',
+        'last_seen',
     ];
 
     protected $casts = [
         'last_updated' => 'datetime',
+        'last_seen' => 'datetime',
+        'installation_date' => 'date',
     ];
 
     public function kandang()
@@ -32,6 +40,7 @@ class Device extends Model
     {
         return $this->hasMany(ActivityLog::class);
     }
+
     public function deteksis()
     {
         return $this->hasMany(Deteksi::class);
@@ -41,6 +50,7 @@ class Device extends Model
     {
         return $this->hasMany(Suhu::class);
     }
+
     public function ayams()
     {
         return $this->hasMany(Ayam::class);

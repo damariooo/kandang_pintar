@@ -3,39 +3,70 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Services\MqttService;
+use App\Models\Device;
+use App\Models\Kandang;
 
-Route::post('/servo/open', function () {
+Route::get('/kandang', function () {
 
-    MqttService::publish('kandang/servo', 'OPEN');
+    $kandangs = Kandang::with('devices')
+        ->get();
 
-    return response()->json([
-        'status' => 'success'
-    ]);
+    return response()->json(
+
+        $kandangs->map(function ($k) {
+
+            $servo = $k->devices
+                ->where('device_type', 'SERVO')
+                ->first();
+
+            $lamp = $k->devices
+                ->where('device_type', 'LED')
+                ->first();
+
+            return [
+                'id' => $k->id,
+                'name' => $k->name,
+                'current_chicken' => $k->current_chicken,
+
+                'servo_status' => $servo->device_state ?? 'inactive',
+                'light_status' => $lamp->device_state ?? 'inactive',
+            ];
+        })
+
+    );
 });
 
-Route::post('/servo/close', function () {
+Route::post('/device/control', function (Request $request) {
 
-    MqttService::publish('kandang/servo', 'CLOSE');
-
-    return response()->json([
-        'status' => 'success'
+    $request->validate([
+        'device_id' => 'required|string',
+        'type'      => 'required|string',
+        'action'    => 'required|string',
     ]);
-});
 
-Route::post('/lamp/on', function () {
+    $device = Device::with('kandang')
+        ->where('device_id', $request->device_id)
+        ->first();
 
-    MqttService::publish('kandang/lamp', 'ON');
+    if (!$device) {
+        return response()->json(['status' => false, 'message' => 'Device tidak ditemukan'], 404);
+    }
+
+    $type = strtoupper($request->type);
+    $action = strtoupper($request->action);
+
+    $topic = "kandang/{$device->kandang->code}/control";
+
+    $payload = [
+        'type' => $type,
+        'action' => $action
+    ];
+
+    MqttService::publish($topic, json_encode($payload));
 
     return response()->json([
-        'status' => 'success'
-    ]);
-});
-
-Route::post('/lamp/off', function () {
-
-    MqttService::publish('kandang/lamp', 'OFF');
-
-    return response()->json([
-        'status' => 'success'
+        'status' => true,
+        'message' => 'Command dikirim ke device',
+        'data' => $payload
     ]);
 });

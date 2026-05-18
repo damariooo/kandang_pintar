@@ -41,8 +41,8 @@
             @forelse($kandangs as $k)
                 @php
                     $latestSensor = optional($k->suhus)->first();
-                    $servo = $k->devices->filter(fn($d) => str_contains(strtoupper($d->device_id), 'SERVO'))->first();
-                    $lamp = $k->devices->filter(fn($d) => str_contains(strtoupper($d->device_id), 'LAMP'))->first();
+                    $servo = $k->devices->where('device_type', 'SERVO')->first();
+                    $lamp = $k->devices->where('device_type', 'LED')->first();
                     $setting = $k->setting;
                     $temp = optional($k->suhus->first())->temperature ?? 0;
                 @endphp
@@ -137,7 +137,10 @@
                                         Pintu Utama</p>
                                     <p
                                         class="font-black tracking-widest text-[11px] {{ $servo && $servo->door_status == 'TERBUKA' ? 'text-emerald-700' : 'text-white' }}">
-                                        {{ $servo->door_status ?? 'OFFLINE' }}</p>
+                                        <span id="servo-status-{{ $k->id }}">
+                                            {{ $servo->door_status ?? 'OFFLINE' }}
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
                             @if ($servo)
@@ -167,7 +170,10 @@
                                 <div>
                                     <p class="text-[8px] uppercase font-black text-slate-400 tracking-widest">Pemanas</p>
                                     <p class="font-black text-slate-800 text-[11px] tracking-widest">
-                                        {{ $lamp->light_status ?? 'OFFLINE' }}</p>
+                                        <span id="lamp-status-{{ $k->id }}">
+                                            {{ $lamp->light_status ?? 'OFFLINE' }}
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
                             @if ($lamp)
@@ -178,7 +184,7 @@
 
                                     <input type="hidden" name="device_id" value="{{ $lamp->device_id }}">
 
-                                    <button type="submit"
+                                    <button id="servo-btn-{{ $k->id }}" type="submit"
                                         class="relative inline-flex items-center h-5 w-10 cursor-pointer rounded-full transition-colors {{ $lamp->light_status == 'HIDUP' ? 'bg-orange-500' : 'bg-slate-300' }}">
                                         <span
                                             class="inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 {{ $lamp->light_status == 'HIDUP' ? 'translate-x-5' : 'translate-x-1' }}"></span>
@@ -254,7 +260,7 @@
                                         class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-orange-500 outline-none">
                                 </div>
                             </div>
-                            <button type="submit"
+                            <button id="lamp-btn-{{ $k->id }}" type="submit"
                                 class="w-full py-4 bg-[#002855] hover:bg-orange-600 text-white text-[10px] font-black uppercase rounded-xl transition-all tracking-[0.2em] shadow-lg">
                                 Update Schedule
                             </button>
@@ -311,9 +317,29 @@
                 fetch('/api/kandang')
                     .then(res => res.json())
                     .then(data => {
+
                         data.forEach(k => {
+
                             updateChicken(k.id, k.current_chicken);
+
+                            let servoStatus = document.getElementById(
+                                'servo-status-' + k.id
+                            );
+
+                            if (servoStatus && k.servo_status) {
+                                servoStatus.innerText = k.servo_status;
+                            }
+
+                            let lampStatus = document.getElementById(
+                                'lamp-status-' + k.id
+                            );
+
+                            if (lampStatus && k.light_status) {
+                                lampStatus.innerText = k.light_status;
+                            }
+
                         });
+
                     });
             }
 
