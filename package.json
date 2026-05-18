@@ -12,6 +12,7 @@
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
+        "lightningcss": "^1.32.0",
         "postcss": "^8.5.10",
         "tailwindcss": "^3.4.19",
         "vite": "^7.0.7"
@@ -65,8 +66,6 @@
         "hasown": "^2.0.3",
         "is-fullwidth-code-point": "^3.0.0",
         "jiti": "^2.6.1",
-        "lightningcss": "^1.32.0",
-        "lightningcss-win32-x64-msvc": "^1.32.0",
         "magic-string": "^0.30.21",
         "math-intrinsics": "^1.1.0",
         "mime-db": "^1.52.0",
