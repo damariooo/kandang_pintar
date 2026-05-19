@@ -8,8 +8,8 @@ class MqttService
 {
     public static function publish($topic, $message)
     {
-        $server = '127.0.0.1';
-        $port = 1883;
+        $server = '17081fa556494a258c016aeecad9a3c0.s1.eu.hivemq.cloud';
+        $port = 8883;
 
         $clientId = 'laravel_' . uniqid();
 
