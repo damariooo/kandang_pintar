@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Services\MqttService;
 use App\Models\Device;
 use Illuminate\Http\Request;
+use App\Events\SensorUpdated;
 // use App\Models\Command;
 // use Illuminate\Http\Request;
 
@@ -193,4 +194,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::resource('/admin', AdminController::class);
         });
     });
+});
+Route::get('/test-websocket', function () {
+
+    event(new SensorUpdated([
+        'kandang_id' => 1,
+        'temperature' => 99,
+        'humidity' => 50
+    ]));
+
+    return 'OK';
 });

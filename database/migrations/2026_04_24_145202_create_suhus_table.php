@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('kandang_id')->constrained()->cascadeOnDelete();
             $table->foreignId('device_id')->nullable()->constrained()->cascadeOnDelete();
             $table->decimal('temperature', 5, 2);
+            $table->decimal('humidity', 5, 2)->nullable();
             $table->timestamps();
         });
     }

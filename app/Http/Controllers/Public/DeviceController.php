@@ -31,10 +31,12 @@ class DeviceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'device_id'     => 'required|unique:devices,device_id',
-            'device_name'   => 'required|string|max:255',
-            'kandang_id'    => 'required|exists:kandangs,id',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'device_id'      => 'required|unique:devices,device_id',
+            'device_name'    => 'required|string|max:255',
+            'kandang_id'     => 'required|exists:kandangs,id',
+            'device_type'    => 'nullable|in:gateway,sensor,actuator',
+            'component_type' => 'nullable|in:esp32,dht22,ultrasonic,servo,led,buzzer',
+            'profile_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         Kandang::where('user_id', auth()->id())
@@ -49,9 +51,7 @@ class DeviceController extends Controller
         $data['last_updated'] = null;
 
         if ($request->hasFile('profile_image')) {
-            $data['profile_image'] =
-                $request->file('profile_image')
-                ->store('devices', 'public');
+            $data['profile_image'] = $request->file('profile_image')->store('devices', 'public');
         }
 
         Device::create($data);
@@ -83,6 +83,8 @@ class DeviceController extends Controller
         $request->validate([
             'device_name'       => 'required|string|max:255',
             'kandang_id'        => 'required|exists:kandangs,id',
+            'device_type'       => 'nullable|in:gateway,sensor,actuator',
+            'component_type'    => 'nullable|in:esp32,dht22,ultrasonic,servo,led,buzzer',
             'profile_image'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'installation_date' => 'nullable|date',
         ]);
@@ -97,6 +99,7 @@ class DeviceController extends Controller
                 Storage::disk('public')->delete($device->profile_image);
                 $device->profile_image = null;
             }
+            $data['profile_image'] = null; 
         }
 
         if ($request->hasFile('profile_image')) {
@@ -104,8 +107,6 @@ class DeviceController extends Controller
                 Storage::disk('public')->delete($device->profile_image);
             }
             $data['profile_image'] = $request->file('profile_image')->store('devices', 'public');
-        } else {
-            $data['profile_image'] = $device->profile_image;
         }
 
         $device->update($data);

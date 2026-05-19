@@ -9,7 +9,8 @@ class Suhu extends Model
     protected $fillable = [
         'kandang_id',
         'device_id',
-        'temperature'
+        'temperature',
+        'humidity'
     ];
 
     public function kandang()

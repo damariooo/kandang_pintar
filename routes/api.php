@@ -49,24 +49,36 @@ Route::post('/device/control', function (Request $request) {
         ->first();
 
     if (!$device) {
-        return response()->json(['status' => false, 'message' => 'Device tidak ditemukan'], 404);
+        return response()->json([
+            'status' => false,
+            'message' => 'Device tidak ditemukan'
+        ], 404);
     }
 
     $type = strtoupper($request->type);
     $action = strtoupper($request->action);
 
-    $topic = "kandang/{$device->kandang->code}/control";
+    // FIX TOPIC
+    if ($type == 'SERVO') {
 
-    $payload = [
-        'type' => $type,
-        'action' => $action
-    ];
+        $topic = "kandang/{$device->kandang->code}/servo";
+    } elseif ($type == 'LED') {
 
-    MqttService::publish($topic, json_encode($payload));
+        $topic = "kandang/{$device->kandang->code}/led";
+    } else {
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Type device tidak valid'
+        ], 400);
+    }
+
+    MqttService::publish($topic, $action);
 
     return response()->json([
         'status' => true,
         'message' => 'Command dikirim ke device',
-        'data' => $payload
+        'topic' => $topic,
+        'data' => $action
     ]);
 });

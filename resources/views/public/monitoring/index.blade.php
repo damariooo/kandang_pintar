@@ -45,6 +45,7 @@
                     $lamp = $k->devices->where('component_type', 'led')->first();
                     $setting = $k->setting;
                     $temp = optional($k->suhus->first())->temperature ?? 0;
+                    $humidity = optional($k->suhus->first())->humidity ?? 0;
                 @endphp
 
                 <div
@@ -67,8 +68,15 @@
             {{ $temp > 30 ? 'fa-fire' : '' }} text-xs">
                                 </i>
 
-                                <span class="text-[11px] font-black">
+                                <span id="temp-{{ $k->id }}" class="text-[11px] font-black">
                                     {{ $temp }}°C
+                                </span>
+                            </div>
+                            <div
+                                class="px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 backdrop-blur bg-slate-800/90 text-white">
+                                <i class="fas fa-tint text-xs text-sky-400"></i>
+                                <span id="humidity-{{ $k->id }}" class="text-[11px] font-black">
+                                    {{ $humidity }}%
                                 </span>
                             </div>
                         </div>
@@ -102,11 +110,10 @@
                                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Kapasitas
                                     Kandang</p>
 
-                                <div class="w-full bg-slate-100 rounded-full h-2">
-                                    <div class="h-2 rounded-full 
-            {{ $k->current_chicken >= $k->capacity ? 'bg-red-500' : 'bg-emerald-500' }}"
-                                        style="width: {{ $k->capacity > 0 ? ($k->current_chicken / $k->capacity) * 100 : 0 }}%">
-                                    </div>
+                                <div id="progress-{{ $k->id }}"
+                                    class="h-2 rounded-full 
+{{ $k->current_chicken >= $k->capacity ? 'bg-red-500' : 'bg-emerald-500' }}"
+                                    style="width: {{ $k->capacity > 0 ? ($k->current_chicken / $k->capacity) * 100 : 0 }}%">
                                 </div>
                                 <div class="flex justify-between mt-1 text-[10px] font-bold text-slate-500">
                                     <div class="relative">
@@ -371,6 +378,25 @@
             }
 
             initData();
-            setInterval(fetchData, 3000);
+            setInterval(fetchData, 2000);
+        </script>
+        <script>
+            window.Echo.channel('kandang-monitor')
+                .listen('.sensor.updated', (e) => {
+
+                    console.log("Realtime:", e);
+
+                    let tempEl = document.getElementById(
+                        'temp-' + e.data.kandang_id
+                    );
+
+                    if (tempEl) {
+                        tempEl.innerText = e.data.temperature + "°C";
+                    }
+                    let humidityEl = document.getElementById('humidity-' + e.data.kandang_id);
+                    if (humidityEl && e.data.humidity) {
+                        humidityEl.innerText = e.data.humidity + "%";
+                    }
+                });
         </script>
     @endsection

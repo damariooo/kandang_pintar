@@ -9,6 +9,7 @@ use App\Models\Suhu;
 use App\Models\Kandang;
 use App\Models\Ayam;
 use App\Models\Device;
+use App\Events\SensorUpdated;
 
 class MqttListen extends Command
 {
@@ -33,7 +34,7 @@ class MqttListen extends Command
                     $topicParts = explode('/', $topic);
                     $kandangCode = $topicParts[1] ?? null;
 
-                    $status = trim(strtolower($message)); 
+                    $status = trim(strtolower($message));
 
                     if ($kandangCode) {
                         $device_ids = [
@@ -60,11 +61,11 @@ class MqttListen extends Command
                     $data = json_decode($message, true);
                     if (!$data) return;
 
-                    echo "RAW SENSOR: " . $message . "\n";
+                    echo "[SENSOR] DATA RECEIVED\n";
 
                     $esp32Id = $data['esp32']['device_id'] ?? null;
                     $device = Device::where('device_id', $esp32Id)->first();
-                    
+
                     if (!$device) return;
 
                     $device->update([
@@ -74,7 +75,7 @@ class MqttListen extends Command
                         'signal_strength' => $data['esp32']['signal_strength'] ?? null,
                         'last_updated' => now(),
                     ]);
-                    
+
                     if ($device->status !== 'aktif') return;
 
                     if (isset($data['temperature'])) {
@@ -84,10 +85,16 @@ class MqttListen extends Command
                         Suhu::create([
                             'kandang_id' => $device->kandang_id ?? 1,
                             'device_id' => $dhtDevice ? $dhtDevice->id : $device->id,
-                            'temperature' => $data['temperature']
+                            'temperature' => $data['temperature'],
+                            'humidity' => $data['humidity'] ?? null
                         ]);
-                        echo "SUHU SAVED\n";
+                        echo "[DB] SUHU SAVED\n";
                         echo "SIGNAL: " . ($data['esp32']['signal_strength'] ?? 'NULL') . "\n";
+                        event(new SensorUpdated([
+                            'kandang_id' => $device->kandang_id,
+                            'temperature' => $data['temperature'],
+                            'humidity' => $data['humidity'] ?? null,
+                        ]));
                     }
                 }, 0);
 
@@ -121,7 +128,7 @@ class MqttListen extends Command
                         }
                         $kandang->save();
                     }
-                    echo "AYAM COUNT UPDATED ({$data['direction']})\n";
+                    echo "[AYAM] {$data['direction']}\n";
                 }, 1);
 
                 $mqtt->subscribe('kandang/device/status', function ($topic, $message) {
@@ -134,7 +141,7 @@ class MqttListen extends Command
                     foreach ($components as $comp) {
                         if (isset($data[$comp])) {
                             $compData = $data[$comp];
-                            
+
                             $updatePayload = [
                                 'connection_status' => 'online',
                                 'device_state'      => $compData['device_state'] ?? 'active',
@@ -166,7 +173,7 @@ class MqttListen extends Command
                     ]);
                     echo "CONFIRMED: DOOR STATUS UPDATED IN DATABASE\n";
                 }, 1);
-            
+
                 $mqtt->subscribe('kandang/light/status', function ($topic, $message) {
                     $data = json_decode($message, true);
                     if (!$data) return;
@@ -180,7 +187,6 @@ class MqttListen extends Command
                 }, 1);
 
                 $mqtt->loop(true);
-
             } catch (MqttClientException | \Exception $e) {
                 $this->error("Koneksi Error/Terputus: " . $e->getMessage());
                 $this->info("Menunggu 5 detik sebelum menyambung ulang...");

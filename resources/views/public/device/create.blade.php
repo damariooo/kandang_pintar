@@ -84,6 +84,29 @@
                             @enderror
                         </div>
 
+                        <div class="space-y-1 border-b border-slate-200 pb-2 focus-within:border-orange-500 transition-all">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipe Device</label>
+                            <select name="device_type" class="w-full py-1 bg-transparent focus:outline-none text-lg text-slate-700 font-semibold cursor-pointer">
+                                <option value="" selected>Pilih Tipe Perangkat</option>
+                                <option value="gateway" {{ old('device_type') == 'gateway' ? 'selected' : '' }}>Gateway</option>
+                                <option value="sensor" {{ old('device_type') == 'sensor' ? 'selected' : '' }}>Sensor</option>
+                                <option value="actuator" {{ old('device_type') == 'actuator' ? 'selected' : '' }}>Actuator</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1 border-b border-slate-200 pb-2 focus-within:border-orange-500 transition-all">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipe Komponen</label>
+                            <select name="component_type" class="w-full py-1 bg-transparent focus:outline-none text-lg text-slate-700 font-semibold cursor-pointer">
+                                <option value="" selected>Pilih Komponen</option>
+                                <option value="esp32" {{ old('component_type') == 'esp32' ? 'selected' : '' }}>ESP32</option>
+                                <option value="dht22" {{ old('component_type') == 'dht22' ? 'selected' : '' }}>DHT22 (Suhu/Kelembaban)</option>
+                                <option value="ultrasonic" {{ old('component_type') == 'ultrasonic' ? 'selected' : '' }}>Ultrasonic</option>
+                                <option value="servo" {{ old('component_type') == 'servo' ? 'selected' : '' }}>Servo</option>
+                                <option value="led" {{ old('component_type') == 'led' ? 'selected' : '' }}>LED</option>
+                                <option value="buzzer" {{ old('component_type') == 'buzzer' ? 'selected' : '' }}>Buzzer</option>
+                            </select>
+                        </div>
+
                         <div class="space-y-1 border-b border-slate-200 pb-2 focus-within:border-orange-500 transition-all md:col-span-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lokasi (Kandang)</label>
                             <select name="kandang_id"
@@ -91,7 +114,9 @@
                                 required>
                                 <option value="" disabled selected>Pilih Lokasi Kandang</option>
                                 @foreach ($kandangs as $kandang)
-                                    <option value="{{ $kandang->id }}">{{ $kandang->name }} ({{ $kandang->code }})</option>
+                                    <option value="{{ $kandang->id }}" {{ old('kandang_id') == $kandang->id ? 'selected' : '' }}>
+                                        {{ $kandang->name }} ({{ $kandang->code }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -99,7 +124,7 @@
                         <div class="space-y-1 border-b border-slate-200 pb-2 focus-within:border-orange-500 transition-all relative">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Instalasi</label>
                             <div class="flex items-center justify-between">
-                                <input type="date" name="installation_date" value="{{ date('Y-m-d') }}"
+                                <input type="date" name="installation_date" value="{{ old('installation_date', date('Y-m-d')) }}"
                                     class="w-full py-1 bg-transparent focus:outline-none text-lg text-slate-700 font-semibold cursor-pointer">
                             </div>
                         </div>
