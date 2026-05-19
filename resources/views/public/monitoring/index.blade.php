@@ -41,8 +41,8 @@
             @forelse($kandangs as $k)
                 @php
                     $latestSensor = optional($k->suhus)->first();
-                    $servo = $k->devices->where('device_type', 'SERVO')->first();
-                    $lamp = $k->devices->where('device_type', 'LED')->first();
+                    $servo = $k->devices->where('component_type', 'servo')->first();
+                    $lamp = $k->devices->where('component_type', 'led')->first();
                     $setting = $k->setting;
                     $temp = optional($k->suhus->first())->temperature ?? 0;
                 @endphp

@@ -9,7 +9,7 @@ use Carbon\Carbon;
 class CheckDeviceStatus extends Command
 {
     protected $signature = 'devices:check-status';
-    protected $description = 'Check device online/offline';
+    protected $description = 'Check device online/offline status based on heartbeat interval';
 
     public function handle()
     {
@@ -18,32 +18,33 @@ class CheckDeviceStatus extends Command
         foreach ($devices as $device) {
 
             if (!$device->last_updated) {
+                $device->update([
+                    'connection_status' => 'offline',
+                    'device_state' => 'error', 
+                    'health_status' => 'CRITICAL',
+                    'signal_strength' => 0,
+                ]);
                 continue;
             }
 
-            $minutes = Carbon::parse($device->last_updated)
-                ->diffInMinutes(now());
+            $minutes = now()->diffInMinutes($device->last_updated);
 
             if ($minutes >= 2) {
-
-                if ($device->connection_status !== 'offline') {
-
-                    $device->update([
-                        'connection_status' => 'offline',
-                        'device_state' => 'inactive',
-                        'health_status' => 'CRITICAL',
-                        'signal_strength' => $data['signal_strength'] ?? null,
-                        'last_updated' => now(),
-                    ]);
-
-                    $this->info("{$device->device_id} -> OFFLINE ({$minutes} min)");
-                }
+                $device->update([
+                    'connection_status' => 'offline',
+                    'device_state' => 'error',
+                    'health_status' => 'CRITICAL',
+                    'signal_strength' => 0,
+                ]);
             } else {
-
-                $this->info("{$device->device_id} -> STILL ACTIVE");
+                $device->update([
+                    'connection_status' => 'online',
+                    'device_state' => 'active',
+                    'health_status' => 'EXCELLENT',
+                ]);
             }
         }
 
-        $this->info('Device check completed');
+        return 0;
     }
 }
