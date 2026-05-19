@@ -21,8 +21,8 @@ class MqttService
             ->setUseTls(true)                  // Mengaktifkan TLS (karena pakai port 8883)
             ->setTlsSelfSignedAllowed(true)    // Mengizinkan self-signed certificate
             ->setTlsVerifyPeer(false)          // Mem-bypass verifikasi ketat (mirip setInsecure di ESP32)
-            ->setUsername('ayokawan')          // Username HiveMQ kamu
-            ->setPassword('Ayokawan123');      // Password HiveMQ kamu
+            ->setUsername('Admin')          // Username HiveMQ kamu
+            ->setPassword('Admin123');      // Password HiveMQ kamu
 
         // 3. MASUKKAN SETTINGAN KE DALAM METHOD CONNECT
         $mqtt->connect($settings);
