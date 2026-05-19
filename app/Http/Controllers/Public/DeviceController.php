@@ -19,13 +19,13 @@ class DeviceController extends Controller
             ->latest()
             ->get();
 
-        return view('Public.device.index', compact('devices'));
+        return view('public.device.index', compact('devices'));
     }
 
     public function create()
     {
         $kandangs = Kandang::where('user_id', auth()->id())->get();
-        return view('Public.device.create', compact('kandangs'));
+        return view('public.device.create', compact('kandangs'));
     }
 
     public function store(Request $request)
@@ -70,7 +70,7 @@ class DeviceController extends Controller
 
         $kandangs = Kandang::where('user_id', auth()->id())->get();
 
-        return view('Public.device.edit', compact('device', 'kandangs'));
+        return view('public.device.edit', compact('device', 'kandangs'));
     }
 
     public function update(Request $request, $id)

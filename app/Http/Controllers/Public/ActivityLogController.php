@@ -78,7 +78,7 @@ class ActivityLogController extends Controller
         });
         $logsData->setCollection($logs);
 
-        return view('Public.activity_log', ['logs' => $logsData]);
+        return view('public.activity_log', ['logs' => $logsData]);
     }
 
     public function store(Request $request)

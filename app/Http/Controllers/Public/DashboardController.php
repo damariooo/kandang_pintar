@@ -71,6 +71,6 @@ class DashboardController extends Controller
 
     public function notifikasi()
     {
-        return view('Public.notifikasi');
+        return view('public.notifikasi');
     }
 }

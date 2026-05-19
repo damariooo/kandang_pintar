@@ -23,19 +23,19 @@ class MonitoringController extends Controller
             ->where('user_id', auth()->id())
             ->get();
 
-        return view('Public.monitoring.index', compact('kandangs'));
+        return view('public.monitoring.index', compact('kandangs'));
     }
 
     public function create()
     {
-        return view('Public.monitoring.create');
+        return view('public.monitoring.create');
     }
 
     public function edit($id)
     {
         $kandang = Kandang::where('user_id', auth()->id())
             ->findOrFail($id);
-        return view('Public.monitoring.edit', compact('kandang'));
+        return view('public.monitoring.edit', compact('kandang'));
     }
 
     public function store(Request $request)
