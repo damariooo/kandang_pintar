@@ -56,7 +56,7 @@ class DashboardController extends Controller
             ->limit(4)
             ->get();
 
-        return view('Public.dashboard', compact(
+        return view('public.dashboard', compact(
             'avgTemperature',
             'totalDevicesCount',
             'onlineDevicesCount',
@@ -71,6 +71,6 @@ class DashboardController extends Controller
 
     public function notifikasi()
     {
-        return view('Public.notifikasi');
+        return view('public.notifikasi');
     }
 }

@@ -24,7 +24,7 @@ class LaporanController extends Controller
 
         if ($daftarKandang->isEmpty()) {
 
-            return view('Public.laporan.index', [
+            return view('public.laporan.index', [
                 'daftarKandang' => collect(),
                 'kandangId' => null,
                 'labels' => [],
@@ -153,7 +153,7 @@ class LaporanController extends Controller
                 ->count(),
         ];
 
-        return view('Public.laporan.index', compact(
+        return view('public.laporan.index', compact(
             'daftarKandang',
             'kandangId',
             'labels',
@@ -234,7 +234,7 @@ class LaporanController extends Controller
 
         if ($format == 'pdf') {
 
-            $pdf = Pdf::loadView('Public.laporan.export_pdf', [
+            $pdf = Pdf::loadView('public.laporan.export_pdf', [
                 'data' => $data,
                 'kandang' => $kandang
             ]);
